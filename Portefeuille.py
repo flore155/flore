@@ -1,4 +1,5 @@
 from datetime import datetime
+from exceptions import ErreurQuantité, LiquiditéInsuffisante
 
 class Portefeuille:
     def __init__(self, bourse):
@@ -63,3 +64,40 @@ class Portefeuille:
         valeur_titres = sum(self.bourse.prix(trans["symbole"], date) * trans["quantité"]
                             for trans in self.transactions if trans["type"] == "achat")
         return solde_liquide + valeur_titres
+    
+    def valeur_des_titres(self,symboles, date=datetime.date.today()):
+         if date > date.today():
+            raise  ErreurDate
+         
+         valeur_titres = sum(self.bourse.prix(symbole, date) * self.quantité_titres(symbole, date)
+                            for symbole in symboles)
+         return valeur_titres
+    
+    def titres(date=datetime.date.today()):
+         if date > date.today():
+            raise  ErreurDate
+         
+         titres_en_portefeuille = {}
+        
+         for trans in self.transactions:
+            if trans["type"] == "achat" and trans["date"] <= date:
+                symbole = trans["symbole"]
+                quantité = trans["quantité"]
+                if symbole in titres_en_portefeuille:
+                    titres_en_portefeuille[symbole] += quantité
+                else:
+                    titres_en_portefeuille[symbole] = quantité
+
+         return titres_en_portefeuille
+    
+    def valeur_projetée(self,date, rendement):
+        valeur_initiale = self.valeur_totale()
+        années = (date - datetime.now().date()).days // 365
+        valeur_projetée = valeur_initiale * (1 + rendement / 100) ** années
+        return valeur_projetée
+    
+    def quantité_titres(self, symbole, date):
+        quantité = sum(trans["quantité"]
+                       for trans in self.transactions
+                       if trans["type"] == "achat" and trans["symbole"] == symbole and trans["date"] <= date)
+        return quantité
