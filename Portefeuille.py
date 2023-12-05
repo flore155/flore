@@ -8,13 +8,13 @@ class Portefeuille:
 
     def déposer(self, montant, date=datetime.now().date()):
         if date > date.today():
-            raise ErreurDate
+            raise ErreurDate()
         self.liquiditer = montant
         self.transactions.append({"type": "dépôt", "montant": montant, "date": date})
 
     def solde(self, date=datetime.now().date()):
         if date > date.today():
-            raise ErreurDate
+            raise ErreurDate()
         solde = 0
         for transaction in self.transactions:
             if transaction["date"] <= date:
@@ -26,7 +26,7 @@ class Portefeuille:
 
     def acheter(self, symbole, quantité, date=datetime.now().date()):
         if date > date.today():
-            raise ErreurDate
+            raise ErreurDate()
         prix_unit = self.bourse.prix(symbole, date)
         coût_total = prix_unit * quantité
         solde_actuel = self.solde(date)
@@ -38,7 +38,7 @@ class Portefeuille:
 
     def vendre(self, symbole, quantité, date=datetime.now().date()):
         if date > date.today():
-            raise ErreurDate
+            raise ErreurDate()
         
         prix_unit = self.bourse.prix(symbole, date=datetime.now().date())
         quantité_en_portefeuille = self.quantité_titres(symbole, date)
@@ -53,7 +53,7 @@ class Portefeuille:
 
     def valeur_totale(self, date=datetime.now().date()):
         if date > date.today():
-            raise ErreurDate
+            raise ErreurDate()
         
         solde_liquide = self.solde(date)
         valeur_titres = sum(self.bourse.prix(trans["symbole"], date) * trans["quantité"]
