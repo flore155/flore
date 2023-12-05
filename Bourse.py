@@ -33,4 +33,4 @@ class Bourse:
         
         return valeur
 
-print(Bourse().prix('goog', '2023-12-03'))
+#print(Bourse().prix('goog', '2023-12-03'))
