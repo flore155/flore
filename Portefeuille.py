@@ -3,9 +3,9 @@ from exceptions import ErreurQuantité, LiquiditéInsuffisante, ErreurDate
 
 class Portefeuille:
     def __init__(self, bourse,date=None):
-        self.bourse = bourse
+        self.bourse = bourse()
         self.transactions = []
-        self.date = date 
+        self.date = date()
 
     def déposer(self, montant, date=None):
         if date == None:
