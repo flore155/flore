@@ -1,8 +1,8 @@
 class ErreurDate(RuntimeError):
     pass
 
-class ErreurQuantité(RuntimeError):
+class ErreurQuantite(RuntimeError):
     pass
 
-class LiquiditéInsuffisante(RuntimeError):
+class LiquiditeInsuffisante(RuntimeError):
     pass

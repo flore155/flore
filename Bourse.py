@@ -39,3 +39,4 @@ class Bourse:
             raise ErreurDate("Aucune valeur trouvée pour la date spécifiée")
 
         return valeur
+    

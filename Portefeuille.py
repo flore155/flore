@@ -117,4 +117,3 @@ class Portefeuille:
             if trans["type"] == "achat" and trans["symbole"] == symbole and trans["date"] <= date
         )
         return quantité
-    
