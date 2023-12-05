@@ -12,7 +12,6 @@ class Bourse:
         réponse = json.loads(réponse.text)
         historique = réponse['historique']
         historique = dict(reversed(sorted(historique.items())))
-        print(historique['2023-12-04'])
         date_en_cours = datetime.today()
         date_en_cours = date_en_cours.strftime('%Y-%m-%d')
         date_en_cours_obj = datetime.strptime(date_en_cours,'%Y-%m-%d')
