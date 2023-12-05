@@ -2,19 +2,24 @@ from datetime import datetime, date
 from exceptions import ErreurQuantité, LiquiditéInsuffisante, ErreurDate
 
 class Portefeuille:
-    def __init__(self, bourse):
+    def __init__(self, bourse,date=None):
         self.bourse = bourse
         self.transactions = []
+        self.date = date 
 
-    def déposer(self, montant, date=datetime.now().date()):
+    def déposer(self, montant, date=None):
+        if date == None:
+            date = datetime.now().date()
         if date > date.today():
-            raise TimeoutError
+            raise ErreurDate()
         self.liquiditer = montant
         self.transactions.append({"type": "dépôt", "montant": montant, "date": date})
 
-    def solde(self, date=datetime.now().date()):
+    def solde(self, date=None):
+        if date == None:
+            date = datetime.now().date()
         if date > date.today():
-            raise TimeoutError
+            raise ErreurDate()
         solde = 0
         for transaction in self.transactions:
             if transaction["date"] <= date:
@@ -24,21 +29,26 @@ class Portefeuille:
                     solde += transaction["montant_liquide"]
         return solde
 
-    def acheter(self, symbole, quantité, date=datetime.now().date()):
+    def acheter(self, symbole, quantité, date=None):
+        if date == None:
+            date=datetime.now().date()
         if date > date.today():
-            raise TimeoutError
+            raise ErreurDate()
         prix_unit = self.bourse.prix(symbole, date)
         coût_total = prix_unit * quantité
         solde_actuel = self.solde(date)
         
         if solde_actuel < coût_total:
             raise LiquiditéInsuffisante("Liquidité insuffisante pour effectuer l'achat.")
+            
         self.transactions.append({"type": "achat", "symbole": symbole, "quantité": quantité, "date": date})
         self.transactions.append({"type": "dépôt", "montant": -coût_total, "date": date})
 
-    def vendre(self, symbole, quantité, date=datetime.now().date()):
+    def vendre(self, symbole, quantité, date=None):
+        if date == None:
+            date=datetime.now().date()
         if date > date.today():
-            raise TimeoutError
+            raise ErreurDate()
         
         prix_unit = self.bourse.prix(symbole, date=datetime.now().date())
         quantité_en_portefeuille = self.quantité_titres(symbole, date)
@@ -51,16 +61,20 @@ class Portefeuille:
         self.transactions.append({"type": "vente", "symbole": symbole, "quantité": quantité, "date": date})
         self.transactions.append({"type": "dépôt", "montant": montant_vente, "date": date})
 
-    def valeur_totale(self, date=datetime.now().date()):
+    def valeur_totale(self, date=None):
+        if date == None:
+            date=datetime.now().date()
         if date > date.today():
-            raise TimeoutError
+            raise ErreurDate()
         
         solde_liquide = self.solde(date)
         valeur_titres = sum(self.bourse.prix(trans["symbole"], date) * trans["quantité"]
                             for trans in self.transactions if trans["type"] == "achat")
         return solde_liquide + valeur_titres
 
-    def valeur_des_titres(self, symboles, date=datetime.now().date()):
+    def valeur_des_titres(self, symboles, date=None):
+        if date == None:
+            date=datetime.now().date()
         if date > date.today():
             raise ErreurDate()
         
@@ -68,7 +82,9 @@ class Portefeuille:
                             for symbole in symboles)
         return valeur_titres
 
-    def titres(self, date=datetime.now().date()):
+    def titres(self, date=None):
+        if date == None:
+            date=datetime.now().date()
         if date > date.today():
             raise ErreurDate()
         
