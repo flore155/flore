@@ -1,15 +1,19 @@
-from datetime import datetime
-from exceptions import ErreurDate
-import requests
+"""Extraction des prix"""
 import json
+from datetime import datetime
+import requests
+from exceptions import ErreurDate
 
 class Bourse:
+    """Encapsule le programme d'extraction de prix"""
     def prix(self, symbole, _date):
+        """retourne le prix de fermeture du symbole boursier à la date
+        spécifiée, ou la valeur de fermeture la plus récente"""
         url = f'https://pax.ulaval.ca/action/{symbole}/historique/'
-        réponse = requests.get(url=url)
-        réponse = json.loads(réponse.text)
+        reponse = requests.get(url=url, timeout=10)
+        reponse = json.loads(reponse.text)
 
-        historique = réponse.get('historique', {})
+        historique = reponse.get('historique', {})
         historique = dict(reversed(sorted(historique.items())))
 
         date_en_cours = datetime.today().date()
@@ -33,3 +37,4 @@ class Bourse:
             raise ErreurDate("Aucune valeur trouvée pour la date spécifiée")
 
         return valeur
+    
