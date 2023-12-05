@@ -88,6 +88,8 @@ class Portefeuille:
         valeur_initiale = self.valeur_totale()
         années = (date - datetime.now().date()).days // 365
         valeur_projetée = valeur_initiale * (1 + rendement / 100) ** années
+        jours = (date - datetime.now().date()).days % 365
+        valeur_projetée += valeur_initiale * (rendement / 100) * (jours / 365)
         return valeur_projetée
 
     def quantité_titres(self, symbole, date):
