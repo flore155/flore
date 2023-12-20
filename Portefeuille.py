@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from exceptions import ErreurQuantité, LiquiditéInsuffisante, ErreurDate
-
+import numpy as np
 
 class Portefeuille:
     def __init__(self, bourse):
@@ -117,3 +117,25 @@ class Portefeuille:
             if trans["type"] == "achat" and trans["symbole"] == symbole and trans["date"] <= date
         )
         return quantité
+   
+    def valeur_projetee_avec_volatilite(self, date, rendement, volatilite, nb_simulations=1000):
+        valeur_initiale = self.valeur_totale()
+        années = (date - datetime.now().date()).days // 365
+        jours = (date - datetime.now().date()).days % 365
+
+        rendements_annuels = np.random.normal(rendement / 100, volatilite / 100, nb_simulations)
+        valeurs_projetees = valeur_initiale * np.power(1 + rendements_annuels, années)
+        valeurs_projetees += valeur_initiale * rendements_annuels * (jours / 365)
+
+        return np.percentile(valeurs_projetees, [25, 50, 75])
+
+    def projection_aleatoire(self, date, rendements_par_symbole):
+        valeur_projete = 0
+        for symbole, (mu, sigma) in rendements_par_symbole.items():
+            quantite = self.quantité_titres(symbole, date)
+            if quantite > 0:
+                prix_actuel = self.bourse.prix(symbole, date)
+                rendement_annuel = np.random.normal(mu / 100, sigma / 100)
+                valeur_projete += quantite * prix_actuel * (1 + rendement_annuel)
+
+        return valeur_projete
