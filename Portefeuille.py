@@ -1,19 +1,20 @@
-from datetime import datetime, date
-from exceptions import ErreurQuantité, LiquiditéInsuffisante, ErreurDate
-import numpy as np
+from datetime import datetime, date, timedelta
+from exceptions import ErreurQuantite, LiquiditeInsuffisante, ErreurDate
+from math import numpy as np
+import matplotlib.pyplot as plt
 
 class Portefeuille:
     def __init__(self, bourse):
         self.bourse = bourse
         self.transactions = []
 
-    def déposer(self, montant, date=None):
+    def deposer(self, montant, date=None):
         if date is None:
             date = datetime.now().date()
         if date > date.today():
             raise ErreurDate()
         self.liquiditer = montant
-        self.transactions.append({"type": "dépôt", "montant": montant, "date": date})
+        self.transactions.append({"type": "depot", "montant": montant, "date": date})
 
     def solde(self, date=None):
         if date is None:
@@ -23,41 +24,41 @@ class Portefeuille:
         solde = 0
         for transaction in self.transactions:
             if transaction["date"] <= date:
-                if transaction["type"] == "dépôt":
+                if transaction["type"] == "depot":
                     solde += transaction["montant"]
                 elif transaction["type"] == "vente":
                     solde += transaction["montant_liquide"]
         return solde
 
-    def acheter(self, symbole, quantité, date=None):
+    def acheter(self, symbole, quantite, date=None):
         if date is None:
             date = datetime.now().date()
         if date > date.today():
             raise ErreurDate()
         prix_unit = self.bourse.prix(symbole, date)
-        coût_total = prix_unit * quantité
+        cout_total = prix_unit * quantite
         solde_actuel = self.solde(date)
 
-        if solde_actuel < coût_total:
-            raise LiquiditéInsuffisante("Liquidité insuffisante pour effectuer l'achat.")
-        self.transactions.append({"type": "achat", "symbole": symbole, "quantité": quantité, "date": date})
-        self.transactions.append({"type": "dépôt", "montant": -coût_total, "date": date})
+        if solde_actuel < cout_total:
+            raise LiquiditeInsuffisante("Liquidite insuffisante pour effectuer l'achat.")
+        self.transactions.append({"type": "achat", "symbole": symbole, "quantite": quantite, "date": date})
+        self.transactions.append({"type": "depot", "montant": -cout_total, "date": date})
 
-    def vendre(self, symbole, quantité, date=None):
+    def vendre(self, symbole, quantite, date=None):
         if date is None:
             date = datetime.now().date()
         if date > date.today():
             raise ErreurDate()
 
         prix_unit = self.bourse.prix(symbole, date=datetime.now().date())
-        quantité_en_portefeuille = self.quantité_titres(symbole, date)
+        quantité_en_portefeuille = self.quantite_titres(symbole, date)
 
-        if quantité > quantité_en_portefeuille:
-            raise ErreurQuantité("Quantité insuffisante de titres pour effectuer la vente.")
+        if quantite > quantité_en_portefeuille:
+            raise ErreurQuantite("Quantité insuffisante de titres pour effectuer la vente.")
 
-        montant_vente = prix_unit * quantité
+        montant_vente = prix_unit * quantite
 
-        self.transactions.append({"type": "vente", "symbole": symbole, "quantité": quantité, "date": date})
+        self.transactions.append({"type": "vente", "symbole": symbole, "quantité": quantite, "date": date})
         self.transactions.append({"type": "dépôt", "montant": montant_vente, "date": date})
 
     def valeur_totale(self, date=None):
@@ -68,7 +69,7 @@ class Portefeuille:
 
         solde_liquide = self.solde(date)
         valeur_titres = sum(
-            self.bourse.prix(trans["symbole"], date) * trans["quantité"] for trans in self.transactions if
+            self.bourse.prix(trans["symbole"], date) * trans["quantite"] for trans in self.transactions if
             trans["type"] == "achat"
         )
         return solde_liquide + valeur_titres
@@ -102,21 +103,21 @@ class Portefeuille:
 
         return titres_en_portefeuille
 
-    def valeur_projetée(self, date, rendement):
+    def valeur_projetee(self, date, rendement):
         valeur_initiale = self.valeur_totale()
         années = (date - datetime.now().date()).days // 365
-        valeur_projetée = valeur_initiale * (1 + rendement / 100) ** années
+        valeur_projetee = valeur_initiale * (1 + rendement / 100) ** années
         jours = (date - datetime.now().date()).days % 365
         valeur_projetée += valeur_initiale * (rendement / 100) * (jours / 365)
         return valeur_projetée
 
-    def quantité_titres(self, symbole, date):
-        quantité = sum(
+    def quantite_titres(self, symbole, date):
+        quantite = sum(
             trans["quantité"]
             for trans in self.transactions
             if trans["type"] == "achat" and trans["symbole"] == symbole and trans["date"] <= date
         )
-        return quantité
+        return quantite
    
     def valeur_projetee_avec_volatilite(self, date, rendement, volatilite, nb_simulations=1000):
         valeur_initiale = self.valeur_totale()
@@ -132,10 +133,40 @@ class Portefeuille:
     def projection_aleatoire(self, date, rendements_par_symbole):
         valeur_projete = 0
         for symbole, (mu, sigma) in rendements_par_symbole.items():
-            quantite = self.quantité_titres(symbole, date)
+            quantite = self.quantite_titres(symbole, date)
             if quantite > 0:
                 prix_actuel = self.bourse.prix(symbole, date)
                 rendement_annuel = np.random.normal(mu / 100, sigma / 100)
                 valeur_projete += quantite * prix_actuel * (1 + rendement_annuel)
 
         return valeur_projete
+    
+
+
+
+class PortefeuilleGraphique(Portefeuille):
+    def __init__(self, bourse):
+        super().__init__(bourse)
+
+    def graphique_historique(self, symboles, date_debut):
+        plt.figure(figsize=(10, 6))
+        for symbole in symboles:
+            dates, prix = self.bourse.historique(symbole, date_debut)
+            plt.plot(dates, prix, label=symbole)
+        plt.title("Historique des Prix des Actions")
+        plt.xlabel("Date")
+        plt.ylabel("Prix")
+        plt.legend()
+        plt.show()
+
+    def graphique_projection(self, date, rendement, volatilite):
+        quartiles = self.valeur_projetee_avec_volatilite(date, rendement, volatilite)
+        dates = [date - timedelta(months=3*i) for i in range(4)]
+        plt.figure(figsize=(10, 6))
+        for i, q in enumerate(quartiles):
+            plt.plot(dates, [q]*len(dates), label=f"Q{i+1}")
+        plt.title("Projection des Quartiles de Valeur du Portefeuille")
+        plt.xlabel("Date")
+        plt.ylabel("Valeur Projetée")
+        plt.legend()
+        plt.show()
